@@ -1,0 +1,66 @@
+{
+	"name": "@signageos/nexmosphere-sdk-js",
+	"version": "4.3.0",
+	"main": "dist/bundle.js",
+	"types": "es6/bundle.d.ts",
+	"files": [
+		"dist",
+		"es6",
+		"README.md",
+		"package.json"
+	],
+	"scripts": {
+		"build": "webpack --config=webpack.config.js",
+		"develop": "webpack --watch --config=webpack.config.js",
+		"generate-declarations": "tsc -p tsconfig.declarations.json",
+		"lint": "tslint --config node_modules/hugport-codestyle/tslint.json {src,tests}/**/*.{ts,tsx}",
+		"prebuild": "rm -rf dist/*",
+		"prepare": "npm run prebuild && npm run build && npm run generate-declarations",
+		"test": "NODE_ENV=test ./node_modules/mocha/bin/mocha --opts mocha.opts",
+		"escheck": "es-check --module es5 dist/*.js",
+		"check": "npm run depcheck && npx --userconfig ./.npmrc @signageos/lib check-deps",
+		"depcheck": "depcheck --specials=tslint,webpack,mocha --parsers='*.ts:typescript,*.js:es6' --detectors='requireCallExpression,importDeclaration' --ignore-dirs='dist,packages' --ignores='@types/*,hugport-codestyle,ts-node,source-map-support,mocha,depcheck,webpack-cli,@babel/polyfill,@babel/preset-env,es-check'"
+	},
+	"repository": {
+		"url": "git@gitlab.com:signageos/nexmosphere-sdk-js",
+		"type": "git"
+	},
+	"devDependencies": {
+		"@babel/core": "7.6.0",
+		"@babel/polyfill": "7.6.0",
+		"@babel/preset-env": "7.6.0",
+		"@types/faker": "4.1.5",
+		"@types/lodash": "4.14.137",
+		"@types/mocha": "5.2.7",
+		"@types/node": "12.7.2",
+		"@types/should": "13.0.0",
+		"@types/sinon": "7.0.13",
+		"awesome-typescript-loader": "5.2.1",
+		"babel-loader": "8.0.6",
+		"depcheck": "0.8.3",
+		"es-check": "5.1.0",
+		"faker": "4.1.0",
+		"hugport-codestyle": "0.0.10",
+		"lodash": "4.17.15",
+		"mocha": "6.2.0",
+		"should": "13.2.3",
+		"should-sinon": "0.0.6",
+		"sinon": "7.4.1",
+		"ts-node": "8.3.0",
+		"tslint": "5.4.3",
+		"typescript": "3.8.3",
+		"webpack": "4.39.2",
+		"webpack-cli": "3.3.7"
+	},
+	"engines": {
+		"node": ">=12.0.0",
+		"npm": ">=6.10.2"
+	},
+	"engine-strict": false,
+	"publishConfig": {
+		"registry": "https://npm.signageos.io",
+		"access": "public"
+	},
+	"author": "signageOS <dev@signageos.io>",
+	"license": "MIT"
+}

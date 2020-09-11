@@ -1,0 +1,8 @@
+dist/
+es6/
+node_modules/
+*.sublime-*
+config/env.*.json
+packages
+ts-node-*
+tmp-*
