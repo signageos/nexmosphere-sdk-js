@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "outDir": "dist",
+        "baseUrl": "src",
+        "rootDirs": ["src", "tests"],
+        "sourceMap": true,
+        "target": "es6",
+        "declaration": false,
+        "jsx": "react",
+        "pretty": true,
+        "moduleResolution": "node",
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "noImplicitThis": true,
+        "noUnusedParameters": true,
+        "noUnusedLocals": true
+    },
+    "include": [
+        "src/**/*.ts"
+    ]
+}

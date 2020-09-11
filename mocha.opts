@@ -1,0 +1,6 @@
+--require should
+--require should-sinon
+--require ts-node/register
+--ui bdd
+--watch-extensions ts
+test/**/*.spec.ts
