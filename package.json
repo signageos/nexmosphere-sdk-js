@@ -62,5 +62,6 @@
 		"access": "public"
 	},
 	"author": "signageOS <dev@signageos.io>",
-	"license": "MIT"
+	"license": "MIT",
+	"dependencies": {}
 }
