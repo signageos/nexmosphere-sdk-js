@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 import { Duplex } from 'stream';
-import { parseMessage, ICommand, FormatType, CommandType } from "./MessageParser";
+import { parseMessage, FormatType, CommandType } from "./MessageParser";
 
 export enum ButtonActions {
 	Pressed = 'pressed',
@@ -50,11 +50,11 @@ class Button extends EventEmitter {
 		this.stream.on('data', (chunk: Buffer) => {
 			const chunkStr = chunk.toString();
 			try {
-				const cmd: ICommand = parseMessage(chunkStr);
+				const cmd = parseMessage(chunkStr);
 
-				if (cmd.address === this.address + 1
+				if (cmd.type === CommandType.XTALK
+					&& cmd.address === this.address + 1
 					&& cmd.format === FormatType.SHORT
-					&& cmd.type === CommandType.XTALK
 				) {
 
 					if (!isNaN(Number(cmd.command))) {

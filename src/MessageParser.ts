@@ -28,16 +28,21 @@ export class UnknownCommandError extends Error {
 	}
 }
 
-export interface ICommand {
+export interface IAddressableCommand {
 	type: CommandType;
 	address: number;
 	command: string;
 	format: FormatType;
 }
 
+export interface IXRAntennaCommand {
+	type: 'antenna';
+	command: string;
+}
+
 const SHORT_XTALK_COMMAND_REGEX = new RegExp(/^X\d{3}A\[\d{0,3}\]$/, 'i');
 
-export function parseMessage(message: string): ICommand {
+export function parseMessage(message: string): IAddressableCommand | IXRAntennaCommand {
 
 	if (message.length === 0) {
 		throw new InvalidArgumentError('Message is empty.');
@@ -57,18 +62,18 @@ export function parseMessage(message: string): ICommand {
 		command = message.slice(message.indexOf('[') + 1, message.indexOf(']'));
 
 		const addressConverted = Number(address);
-		return createCommand(command, type, addressConverted, format);
+		return createAddresableCommand(command, type, addressConverted, format);
 	}
 
 	throw new UnknownCommandError();
 }
 
-export function createCommand(
+export function createAddresableCommand(
 	command: string,
 	type: CommandType,
 	address: number,
 	format: FormatType,
-): ICommand {
+): IAddressableCommand {
 
 	return {
 		command,

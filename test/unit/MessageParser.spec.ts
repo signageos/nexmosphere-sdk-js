@@ -1,6 +1,6 @@
 
 import * as should from 'should';
-import { ICommand, parseMessage, InvalidArgumentError, UnknownCommandError } from '../../src/MessageParser';
+import { parseMessage, InvalidArgumentError, UnknownCommandError } from '../../src/MessageParser';
 
 describe('MessageParser', () => {
 	const testCases = [
@@ -70,7 +70,7 @@ describe('MessageParser', () => {
 	];
 	it('should correctly parse the short command message', () => {
 		for (const testCase of testCases) {
-			const actualCmd: ICommand = parseMessage(testCase.message);
+			const actualCmd = parseMessage(testCase.message);
 			should(actualCmd).be.deepEqual(testCase.expectedCommand);
 		}
 	});
