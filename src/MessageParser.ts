@@ -41,7 +41,7 @@ export interface IXRAntennaCommand {
 	tagIndex: number;
 }
 
-const SHORT_XTALK_COMMAND_REGEX = new RegExp(/^X\d{3}A\[\d{0,3}\]$/, 'i');
+const SHORT_XTALK_COMMAND_REGEX = new RegExp(/^X\d{3}A\[\d{1,3}\]$/, 'i');
 const RFID_ANTENNA_XTALK_REGEX = new RegExp(/^XR\[P(U|B)\d{3}\]$/, 'i');
 
 export function parseMessage(message: string): IAddressableCommand | IXRAntennaCommand {

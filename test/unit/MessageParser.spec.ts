@@ -23,15 +23,6 @@ describe('MessageParser', () => {
 			},
 		},
 		{
-			message: 'X007A[]',
-			expectedCommand: {
-				format: 'A',
-				command: '',
-				type: 'X',
-				address: 7,
-			},
-		},
-		{
 			message: 'X001A[3]',
 			expectedCommand: {
 				format: 'A',

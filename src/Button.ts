@@ -23,7 +23,8 @@ class Button extends EventEmitter {
 	 */
 	private index: number;
 
-	private state: ButtonStates;
+	private state: ButtonStates | null = null;
+	private eventEmitter: EventEmitter;
 
 	public constructor(
 		stream: Duplex,
@@ -34,15 +35,17 @@ class Button extends EventEmitter {
 		this.stream = stream;
 		this.address = address;
 		this.index = index;
-		this.state = ButtonStates.RELEASED;
+		this.eventEmitter = new EventEmitter();
 
 		this.initStream();
 	}
 
-	public requestState(): void {
+	public async isPressed(): Promise<boolean> {
 		const address = this.address.toString().padStart(3, '0');
 		const msg = `X${address}A[]`;
 		this.stream.write(msg);
+		const newState = await this.waitForNextStateChange();
+		return newState === ButtonActions.Pressed;
 	}
 
 	private initStream(): void {
@@ -53,20 +56,16 @@ class Button extends EventEmitter {
 				const cmd = parseMessage(chunkStr);
 
 				if (cmd.type === CommandType.XTALK
-					&& cmd.address === this.address + 1
+					&& cmd.address === this.address
 					&& cmd.format === FormatType.SHORT
 				) {
-
 					if (!isNaN(Number(cmd.command))) {
 						const value = Number(cmd.command);
 
-						if (isButtonPressed(value, this.index) && this.state === ButtonStates.RELEASED) {
+						if (isButtonPressed(value, this.index) && this.state !== ButtonStates.PRESSED) {
 							this.handlePressed();
-						} else {
-
-							if (this.state === ButtonStates.PRESSED && !isButtonPressed(value, this.index)) {
-								this.handleReleased();
-							}
+						} else if (this.state !== ButtonStates.RELEASED && !isButtonPressed(value, this.index)) {
+							this.handleReleased();
 						}
 					}
 				}
@@ -79,13 +78,20 @@ class Button extends EventEmitter {
 	private handlePressed(): void {
 		this.state = ButtonStates.PRESSED;
 		this.emit(ButtonActions.Pressed);
+		this.eventEmitter.emit('state_change', ButtonActions.Pressed);
 	}
 
 	private handleReleased(): void {
 		this.state = ButtonStates.RELEASED;
 		this.emit(ButtonActions.Released);
+		this.eventEmitter.emit('state_change', ButtonActions.Released);
 	}
 
+	private waitForNextStateChange() {
+		return new Promise((resolve: (newState: ButtonActions) => void) => {
+			this.eventEmitter.once('state_change', resolve);
+		});
+	}
 }
 
 /**

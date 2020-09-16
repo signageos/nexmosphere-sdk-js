@@ -182,7 +182,7 @@ describe('Button', () => {
 		it('should correctly emit on pressed/released events', async function() {
 			const duplexStream = new MockDuplex();
 
-			const address = 0;
+			const address = 1;
 			const index = 0;
 	
 			const button = new Button(duplexStream, address, index);
@@ -235,9 +235,9 @@ describe('Button', () => {
 		it('should correctly emit pressed/relesed events when multiple buttons are pressed', async function() {
 			const duplexStream = new MockDuplex();
 
-			const address1 = 0;
+			const address1 = 1;
 			const index1 = 0;
-			const address2 = 0;
+			const address2 = 1;
 			const index2 = 1;
 
 			const button1 = new Button(duplexStream, address1, index1);
@@ -250,7 +250,7 @@ describe('Button', () => {
 					i1 += 1;
 				})
 				.on(ButtonActions.Released, () => {
-					i1 -= 1;
+					i1 = Math.max(i1 - 1, 0);
 				});
 
 			button2
@@ -258,7 +258,7 @@ describe('Button', () => {
 					i2 += 1;
 				})
 				.on(ButtonActions.Released, () => {
-					i2 -= 1;
+					i2 = Math.max(i2 - 1, 0);
 				});
 
 			duplexStream.push('X001A[3]');
@@ -341,7 +341,7 @@ describe('Button', () => {
 			button3.on(ButtonActions.Pressed, button3PressedCallBack).on(ButtonActions.Released, button3ReleasedCallBack);
 			button4.on(ButtonActions.Pressed, button4PressedCallBack).on(ButtonActions.Released, button4ReleasedCallBack);
 
-			duplexStream.push('X002A[31]');
+			duplexStream.push('X001A[31]');
 
 			await waitUntil(async () => i1 === 1 && i2 === 1 && i3 === 1 && i4 === 1);
 
@@ -351,7 +351,7 @@ describe('Button', () => {
 			should(i4).be.equal(1);
 
 			// 2nd & 3rd buttons are pressed other released
-			duplexStream.push('X002A[13]');
+			duplexStream.push('X001A[13]');
 
 			await waitUntil(async () => i1 === 0 && i2 === 1 && i3 === 1 && i4 === 0);
 
@@ -360,7 +360,7 @@ describe('Button', () => {
 			should(i3).be.equal(1);
 			should(i4).be.equal(0);
 
-			duplexStream.push('X002A[0]');
+			duplexStream.push('X001A[0]');
 
 			/// only 2nd & 3rd were released other were already released so we trigger released precisely
 			await waitUntil(async () => i1 === 0 && i2 === 0 && i3 === 0 && i4 === 0);
@@ -370,7 +370,7 @@ describe('Button', () => {
 			should(i3).be.equal(0);
 			should(i4).be.equal(0);
 
-			duplexStream.push('X002A[3]');
+			duplexStream.push('X001A[3]');
 
 			await waitUntil(async () => i1 === 1 && i2 === 0 && i3 === 0 && i4 === 0);
 
@@ -381,34 +381,44 @@ describe('Button', () => {
 
 			duplexStream.end();
 		});
+	});
 
-		it('should request current state', async function() {
+	describe('Button.isPressed', () => {
+
+		it('should return true when button is currently pressed', async function () {
 			const duplexStream = new MockDuplex();
-			let i2 = 0;
-			const address = 1;
-			const index1 = 0;
-			const requestStateStr = `X00${address}A[]`
-			duplexStream.on('data', (chunk: Buffer) => {
-				if (chunk.toString() === requestStateStr) {
-					i2 += 1;
-				}
+			const button = new Button(duplexStream, 1, 0);
+			const dataWrittenPromise = new Promise((resolve: (data: Buffer) => void) => {
+				duplexStream.on('data', resolve);
 			});
+			const isPressedPromise = button.isPressed();
 
-			const button1 = new Button(duplexStream, address, index1);
-			let i1 = 0;
-			const button1PressedCallBack = () => i1 += 1;
-			const button1ReleasedCallBack = () => i1 -= 1;
-			button1.on(ButtonActions.Pressed, button1PressedCallBack).on(ButtonActions.Released, button1ReleasedCallBack);
+			const writtenData = await dataWrittenPromise;
+			should(writtenData.toString()).equal('X001A[]');
 
-			button1.requestState();
+			duplexStream.push('X001A[3]');
+			const isPressed = await isPressedPromise;
+			should(isPressed).be.true();
 
-			await waitUntil(async () => i2 === 1 && i1 === 0);
+			duplexStream.end();
+		});
 
-			should(i2).be.equal(1);
-			should(i1).be.equal(0);
+		it('should return false when button is not currently pressed', async function () {
+			const duplexStream = new MockDuplex();
+			const button = new Button(duplexStream, 1, 0);
+			const dataWrittenPromise = new Promise((resolve: (data: Buffer) => void) => {
+				duplexStream.on('data', resolve);
+			});
+			const isPressedPromise = button.isPressed();
+
+			const writtenData = await dataWrittenPromise;
+			should(writtenData.toString()).equal('X001A[]');
+
+			duplexStream.push('X001A[0]');
+			const isPressed = await isPressedPromise;
+			should(isPressed).be.false();
 
 			duplexStream.end();
 		});
 	});
-
 });
