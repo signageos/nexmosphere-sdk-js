@@ -43,6 +43,7 @@ export interface IXRAntennaCommand {
 
 const SHORT_XTALK_COMMAND_REGEX = new RegExp(/^X\d{3}A\[\d{1,3}\]$/, 'i');
 const RFID_ANTENNA_XTALK_REGEX = new RegExp(/^XR\[P(U|B)\d{3}\]$/, 'i');
+const LONG_XTALK_COMMAND_REGEX = new RegExp(/^X\d{3}B\[.{1,30}\]$/, 'i');
 
 export function parseMessage(message: string): IAddressableCommand | IXRAntennaCommand {
 
@@ -76,6 +77,17 @@ export function parseMessage(message: string): IAddressableCommand | IXRAntennaC
 		const tagIndex = parseInt(bracketsContents.substr(2, 3));
 
 		return createXRAntennaCommand(xrAntennaCmd, tagIndex);
+	}
+
+	const xTalkLongCommandMatch: RegExpMatchArray | null = message.match(LONG_XTALK_COMMAND_REGEX);
+
+	if (xTalkLongCommandMatch) {
+		type = CommandType.XTALK;
+		format = FormatType.LONG;
+		address = message.substr(1, 3); // i.e 008
+		command = message.slice(message.indexOf('[') + 1, message.indexOf(']'));
+
+		return createAddresableCommand(command, type, parseInt(address), format);
 	}
 
 	throw new UnknownCommandError();
