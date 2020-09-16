@@ -3,7 +3,7 @@
         "module": "commonjs",
         "outDir": "dist",
         "baseUrl": "src",
-        "rootDirs": ["src", "tests"],
+        "rootDirs": ["src", "test"],
         "sourceMap": true,
         "target": "es6",
         "declaration": false,
@@ -19,6 +19,7 @@
         "noUnusedLocals": true
     },
     "include": [
-        "src/**/*.ts"
+        "src/**/*.ts",
+        "test/**/*.spec.ts"
     ]
 }
