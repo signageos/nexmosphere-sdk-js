@@ -37,18 +37,20 @@ export interface IAddressableCommand {
 
 export interface IXRAntennaCommand {
 	type: 'antenna';
-	command: string;
+	command: 'PU' | 'PB';
+	tagIndex: number;
 }
 
 const SHORT_XTALK_COMMAND_REGEX = new RegExp(/^X\d{3}A\[\d{0,3}\]$/, 'i');
+const RFID_ANTENNA_XTALK_REGEX = new RegExp(/^XR\[P(U|B)\d{3}\]$/, 'i');
 
 export function parseMessage(message: string): IAddressableCommand | IXRAntennaCommand {
 
 	if (message.length === 0) {
 		throw new InvalidArgumentError('Message is empty.');
 	}
-	let format: FormatType;
-	let type: CommandType;
+	let format;
+	let type;
 	let address: string;
 	let command: string;
 
@@ -63,6 +65,17 @@ export function parseMessage(message: string): IAddressableCommand | IXRAntennaC
 
 		const addressConverted = Number(address);
 		return createAddresableCommand(command, type, addressConverted, format);
+	}
+
+	const xTalkRfidAntennaMatch: RegExpMatchArray | null = message.match(RFID_ANTENNA_XTALK_REGEX);
+
+	if (xTalkRfidAntennaMatch) {
+		type = 'antenna';
+		const bracketsContents = message.slice(message.indexOf('[') + 1, message.indexOf(']'));
+		const xrAntennaCmd: 'PU' | 'PB' = bracketsContents.substr(0, 2) as 'PU' | 'PB';
+		const tagIndex = parseInt(bracketsContents.substr(2, 3));
+
+		return createXRAntennaCommand(xrAntennaCmd, tagIndex);
 	}
 
 	throw new UnknownCommandError();
@@ -80,5 +93,14 @@ export function createAddresableCommand(
 		type,
 		address,
 		format,
+	};
+}
+
+export function createXRAntennaCommand(command: 'PU' | 'PB', tagIndex: number): IXRAntennaCommand {
+
+	return {
+		type: 'antenna',
+		command,
+		tagIndex,
 	};
 }

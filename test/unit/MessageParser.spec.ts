@@ -67,6 +67,22 @@ describe('MessageParser', () => {
 				address: 260,
 			},
 		},
+		{
+			message: 'XR[PU001]',
+			expectedCommand: {
+				type: 'antenna',
+				command: 'PU',
+				tagIndex: 1,
+			},
+		},
+		{
+			message: 'XR[PB666]',
+			expectedCommand: {
+				type: 'antenna',
+				command: 'PB',
+				tagIndex: 666,
+			},
+		},
 	];
 	it('should correctly parse the short command message', () => {
 		for (const testCase of testCases) {
