@@ -84,7 +84,7 @@ describe('Button', () => {
 
 			should(isButtonPressed(value, firstButtonIndex)).be.equal(true);
 			should(isButtonPressed(value, forthButtonIndex)).be.equal(true);
-			otherIndices.forEach(bIdx => should(isButtonPressed(value, bIdx)).be.equal(false));
+			otherIndices.forEach((bIdx: number) => should(isButtonPressed(value, bIdx)).be.equal(false));
 		});
 
 		it('should correctly compute when buttons 1, 2 are pressed', () => {
@@ -95,7 +95,7 @@ describe('Button', () => {
 
 			should(isButtonPressed(value, firstButtonIndex)).be.equal(true);
 			should(isButtonPressed(value, secondButtonIndex)).be.equal(true);
-			otherIndices.forEach(bIdx => should(isButtonPressed(value, bIdx)).be.equal(false));
+			otherIndices.forEach((bIdx: number) => should(isButtonPressed(value, bIdx)).be.equal(false));
 		});
 
 		it('should correctly compute when buttons 1, 3 are pressed', () => {
@@ -106,7 +106,7 @@ describe('Button', () => {
 
 			should(isButtonPressed(value, firstButtonIndex)).be.equal(true);
 			should(isButtonPressed(value, thirdButtonIndex)).be.equal(true);
-			otherIndices.forEach(bIdx => should(isButtonPressed(value, bIdx)).be.equal(false));
+			otherIndices.forEach((bIdx: number) => should(isButtonPressed(value, bIdx)).be.equal(false));
 		});
 
 		it('should correctly compute when buttons 2, 3 are pressed', () => {
@@ -117,7 +117,7 @@ describe('Button', () => {
 
 			should(isButtonPressed(value, secondButtonIndex)).be.equal(true);
 			should(isButtonPressed(value, thirdButtonIndex)).be.equal(true);
-			otherIndices.forEach(bIdx => should(isButtonPressed(value, bIdx)).be.equal(false));
+			otherIndices.forEach((bIdx: number) => should(isButtonPressed(value, bIdx)).be.equal(false));
 		});
 
 		it('should correctly compute when buttons 3, 4 are pressed', () => {
@@ -128,14 +128,14 @@ describe('Button', () => {
 
 			should(isButtonPressed(value, thirdButtonIndex)).be.equal(true);
 			should(isButtonPressed(value, forthButtonIndex)).be.equal(true);
-			otherIndices.forEach(bIdx => should(isButtonPressed(value, bIdx)).be.equal(false));
+			otherIndices.forEach((bIdx: number) => should(isButtonPressed(value, bIdx)).be.equal(false));
 		});
 
 		it('should correctly compute when buttons 1, 2, 3 are pressed', () => {
 			const value = 15; // 01111
 			const pressedButtons = [0, 1, 2];
 			const nonPressedButton = 3;
-			pressedButtons.forEach(bIdx => should(isButtonPressed(value, bIdx)).be.equal(true));
+			pressedButtons.forEach((bIdx: number) => should(isButtonPressed(value, bIdx)).be.equal(true));
 			should(isButtonPressed(value, nonPressedButton)).be.equal(false);
 		});
 
@@ -143,14 +143,14 @@ describe('Button', () => {
 			const value = 29; // 11101
 			const pressedButtons = [1, 2, 3];
 			const nonPressedButton = 0;
-			pressedButtons.forEach(bIdx => should(isButtonPressed(value, bIdx)).be.equal(true));
+			pressedButtons.forEach((bIdx: number) => should(isButtonPressed(value, bIdx)).be.equal(true));
 			should(isButtonPressed(value, nonPressedButton)).be.equal(false);
 		});
 
 		it('should correctly compute when buttons 1, 2, 3, 4 are pressed', () => {
 			const value = 31; // 11111
 			const pressedButtons = [1, 2, 3];
-			pressedButtons.forEach(bIdx => should(isButtonPressed(value, bIdx)).be.equal(true));
+			pressedButtons.forEach((bIdx: number) => should(isButtonPressed(value, bIdx)).be.equal(true));
 		});
 
 		it('should correctly compute when errors happen', () => {
@@ -166,53 +166,33 @@ describe('Button', () => {
 
 		it('should correctly emit on pressed/released events', async function() {
 			const serialPort = new MockSerialPort();
-
 			const address = 1;
 			const index = 0;
-	
 			const button = new Button(serialPort, address, index);
-	
-			let i = 0;
-	
-			button
-				.on(ButtonActions.Pressed, () => {
-					i += 1;
-				})
-				.on(ButtonActions.Released, () => {
-					i -= 1;
-				});
-	
-			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[3]');
-	
-			await waitUntil(async () => {
-				return i === 1;
+			const buttonPressedPromise = new Promise((resolve: (x: boolean) => void) => {
+				button
+					.on(ButtonActions.Pressed, () => {
+						resolve(true);
+					});
 			});
-	
-			should(i).be.equal(1);
-
-			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[0]');
-
-			await waitUntil(async () => {
-				return i === 0;
+			const buttonReleasedPromise = new Promise((resolve: (x: boolean) => void) => {
+				button
+					.on(ButtonActions.Pressed, () => {
+						resolve(true);
+					});
 			});
-	
-			should(i).be.equal(0);
 
 			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[3]');
 
-			await waitUntil(async () => {
-				return i === 1;
-			});
-	
-			should(i).be.equal(1);
+			let buttonPressed = await buttonPressedPromise;
+
+			should(buttonPressed).be.true();
 
 			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[0]');
-	
-			await waitUntil(async () => {
-				return i === 0;
-			});
-	
-			should(i).be.equal(0);
+
+			let buttonReleased = await buttonReleasedPromise;
+
+			should(buttonReleased).be.true();
 		});
 
 		it('should correctly emit pressed/relesed events when multiple buttons are pressed', async function() {
@@ -249,7 +229,7 @@ describe('Button', () => {
 			await waitUntil(async () => {
 				return i1 === 1 && i2 === 0;
 			});
-	
+
 			should(i1).be.equal(1);
 			should(i2).be.equal(0);
 

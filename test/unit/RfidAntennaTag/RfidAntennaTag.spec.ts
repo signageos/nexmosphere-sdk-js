@@ -146,7 +146,7 @@ describe('RfidAntennaTag', () => {
 
 		serialPort.emit(SerialPortEvent.MESSAGE, 'XR[PB001]');
 		serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[0]');
-	
+
 		let placedTagNumber = await antenna1PlacedTagPromise;
 
 		should(placedTagNumber).be.equal(1);
@@ -212,7 +212,6 @@ describe('RfidAntennaTag', () => {
 		const tagNumber2 = 2;
 		const tagNumber4 = 4;
 
-
 		const pickedTag2Promise = new Promise((resolve: (tagNumber: number) => void, reject: () => void) => {
 			rfidAntennaTag
 				.on(RfidAntennaActions.Placed, (tagNumber: number) => {
@@ -275,7 +274,7 @@ describe('RfidAntennaTag', () => {
 			rfidAntenna2
 				.on(RfidAntennaActions.Placed, (tagNumber: number) => {
 					if (tagNumber === tagNumber1) {
-						resolve(tagNumber)
+						resolve(tagNumber);
 					}
 				});
 		});
