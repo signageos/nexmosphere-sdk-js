@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
-import { Duplex } from "stream";
 import { parseMessage, CommandType, FormatType } from "./MessageParser";
+import ISerialPort, { SerialPortEvent } from './ISerialPort';
 
 export enum RfidAntennaActions {
 	Picked = 'picked',
@@ -21,7 +21,7 @@ class RfidAntenna extends EventEmitter {
 	private eventEmitter: EventEmitter;
 
 	constructor(
-		private stream: Duplex,
+		private serialPort: ISerialPort,
 		private address: number,
 	) {
 		super();
@@ -31,7 +31,7 @@ class RfidAntenna extends EventEmitter {
 
 	public async getPlacedTags(): Promise<Array<number>> {
 		const address = this.address.toString().padStart(3, '0');
-		this.stream.write(`X${address}B[]`);
+		this.serialPort.sendMessage(`X${address}B[]`);
 
 		const cmdStr: string = await this.waitForResponseStatus();
 		const cmdStrTrimmed: string = cmdStr.replace(/[ \t]{2,}/g, ' ').trim();
@@ -45,10 +45,9 @@ class RfidAntenna extends EventEmitter {
 
 	private initStream(): void {
 
-		this.stream.on('data', (chunk: Buffer) => {
-			const chunkStr = chunk.toString();
+		this.serialPort.on(SerialPortEvent.MESSAGE, (message: string) => {
 			try {
-				const cmd = parseMessage(chunkStr);
+				const cmd = parseMessage(message);
 
 				if (cmd.type === 'antenna') {
 					// tag was placed or put

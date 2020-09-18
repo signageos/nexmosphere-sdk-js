@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
-import { Duplex } from 'stream';
 import { parseMessage, FormatType, CommandType } from "./MessageParser";
+import ISerialPort, { SerialPortEvent } from './ISerialPort';
 
 export enum ButtonActions {
 	Pressed = 'pressed',
@@ -15,8 +15,7 @@ export enum ButtonStates {
 // tslint:disable:no-bitwise bitwise operations are required in this source file
 
 class Button extends EventEmitter {
-	private stream: Duplex;
-	private address: number;
+
 	/**
 	 * `index` the button on the XN-185 board
 	 * is zero based, can be 0-3
@@ -27,13 +26,11 @@ class Button extends EventEmitter {
 	private eventEmitter: EventEmitter;
 
 	public constructor(
-		stream: Duplex,
-		address: number,
+		private serialPort: ISerialPort,
+		private address: number,
 		index: number,
 	) {
 		super();
-		this.stream = stream;
-		this.address = address;
 		this.index = index;
 		this.eventEmitter = new EventEmitter();
 
@@ -43,17 +40,16 @@ class Button extends EventEmitter {
 	public async isPressed(): Promise<boolean> {
 		const address = this.address.toString().padStart(3, '0');
 		const msg = `X${address}A[]`;
-		this.stream.write(msg);
+		this.serialPort.sendMessage(msg);
 		const newState = await this.waitForNextStateChange();
 		return newState === ButtonActions.Pressed;
 	}
 
 	private initStream(): void {
 
-		this.stream.on('data', (chunk: Buffer) => {
-			const chunkStr = chunk.toString();
+		this.serialPort.on(SerialPortEvent.MESSAGE, (message: string) => {
 			try {
-				const cmd = parseMessage(chunkStr);
+				const cmd = parseMessage(message);
 
 				if (cmd.type === CommandType.XTALK
 					&& cmd.address === this.address

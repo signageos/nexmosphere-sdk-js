@@ -1,42 +1,17 @@
 
 import * as should from 'should';
-import { Duplex, DuplexOptions } from 'stream';
 import RfidAntenna, { RfidAntennaActions } from '../../../src/RfidAntennaTag';
 import { wait } from '../../helper';
 import * as sinon from 'sinon';
-
-class MockDuplex extends Duplex {
-
-	public constructor(options?: DuplexOptions) {
-		super(options);
-	}
-
-	public _read(_size: number) {
-	}
-	public _write(_chunk: Buffer, _encoding: any, next: () => void) {
-		const chunkStr = _chunk.toString();
-		if (chunkStr === 'X007B[]') {
-			const mockHWResponse = 'X007B[ d004 d002 d000 d000]';
-			this.push(mockHWResponse);
-		}
-		if (chunkStr === 'X001B[]') {
-			const mockHWResponse = 'X001B[d001 d002 d003 d004]';
-			this.push(mockHWResponse);
-		}
-		if (chunkStr === 'X002B[]') {
-			const mockHWResponse = 'X002B[d000 d000 d000 d000]';
-			this.push(mockHWResponse);
-		}
-		next();
-	}
-}
+import MockSerialPort from '../MockSerialPort';
+import { SerialPortEvent } from '../../../src/ISerialPort';
 
 describe('RfidAntennaTag', () => {
 
 	it('should correctly emit Picked when tag is picked', async function() {
-		const duplexStream = new MockDuplex();
+		const serialPort = new MockSerialPort();
 		const address = 1;
-		const rfidAntennaTag = new RfidAntenna(duplexStream, address);
+		const rfidAntennaTag = new RfidAntenna(serialPort, address);
 
 		const pickedTagPromise = new Promise((resolve: (tagNumber: number) => void, reject: () => void) => {
 			rfidAntennaTag
@@ -48,20 +23,18 @@ describe('RfidAntennaTag', () => {
 				});
 		});
 
-		duplexStream.push(`XR[PU002]`);
-		duplexStream.push(`X001A[1]`);
+		serialPort.emit(SerialPortEvent.MESSAGE, 'XR[PU002]');
+		serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[1]');
 
 		const pickedTagNumber = await pickedTagPromise;
 
 		should(pickedTagNumber).be.equal(2);
-
-		duplexStream.end();
 	});
 
 	it('should correctly emit event Placed when tag is placed', async function() {
-		const duplexStream = new MockDuplex();
+		const serialPort = new MockSerialPort();
 		const address = 1;
-		const rfidAntennaTag = new RfidAntenna(duplexStream, address);
+		const rfidAntennaTag = new RfidAntenna(serialPort, address);
 
 		const placedPromiseTag = new Promise((resolve: (tagNumber: number) => void, reject: () => void) => {
 			rfidAntennaTag
@@ -73,44 +46,40 @@ describe('RfidAntennaTag', () => {
 				});
 		});
 
-		duplexStream.push(`XR[PB002]`);
-		duplexStream.push(`X001A[0]`);
+		serialPort.emit(SerialPortEvent.MESSAGE, 'XR[PB002]');
+		serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[0]');
 
 		const placedTagNumber = await placedPromiseTag;
 
 		should(placedTagNumber).be.equal(2);
-
-		duplexStream.end();
 	});
 
 	it('should not emit any Picked or Placed events when address is different', async function() {
-		const duplexStream = new MockDuplex();
+		const serialPort = new MockSerialPort();
 		const address = 1;
-		const rfidAntennaTag = new RfidAntenna(duplexStream, address);
+		const rfidAntennaTag = new RfidAntenna(serialPort, address);
 
 		const onPickedCb = sinon.spy();
 		const onPlacedCb = sinon.spy();
 
 		rfidAntennaTag.on(RfidAntennaActions.Picked, onPickedCb).on(RfidAntennaActions.Placed, onPlacedCb);
 
-		duplexStream.push(`XR[PU004]`);
-		duplexStream.push(`X002A[1]`);
+		serialPort.emit(SerialPortEvent.MESSAGE, 'XR[PU004]');
+		serialPort.emit(SerialPortEvent.MESSAGE, 'X002A[1]');
 
 		await wait(2e2);
 
 		onPickedCb.callCount.should.equal(0);
 		onPlacedCb.callCount.should.equal(0);
-
-		duplexStream.end();
 	});
 
 	it('should correctly emit Picked events for multiple antennas', async function() {
-		const duplexStream = new MockDuplex();
+		const serialPort = new MockSerialPort();
 		const address1 = 1;
-		const rfidAntenna1 = new RfidAntenna(duplexStream, address1);
+		const rfidAntenna1 = new RfidAntenna(serialPort, address1);
 
 		const address2 = 2;
-		const rfidAntenna2 = new RfidAntenna(duplexStream, address2);
+		const rfidAntenna2 = new RfidAntenna(serialPort, address2);
 
 		const antenna1PickedTagPromise = new Promise((resolve: (tagNumber: number) => void, reject: () => void) => {
 			rfidAntenna1
@@ -132,15 +101,15 @@ describe('RfidAntennaTag', () => {
 				});
 		});
 
-		duplexStream.push(`XR[PU001]`);
-		duplexStream.push(`X001A[1]`);
+		serialPort.emit(SerialPortEvent.MESSAGE, 'XR[PU001]');
+		serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[1]');
 
 		let pickedTagNumber = await antenna1PickedTagPromise;
 
 		should(pickedTagNumber).be.equal(1);
 
-		duplexStream.push(`XR[PU002]`);
-		duplexStream.push(`X002A[1]`);
+		serialPort.emit(SerialPortEvent.MESSAGE, 'XR[PU002]');
+		serialPort.emit(SerialPortEvent.MESSAGE, 'X002A[1]');
 
 		pickedTagNumber = await antenna2PickedTagPromise;
 
@@ -148,12 +117,12 @@ describe('RfidAntennaTag', () => {
 	});
 
 	it('should correctly emit Placed events for multiple antennas', async function() {
-		const duplexStream = new MockDuplex();
+		const serialPort = new MockSerialPort();
 		const address1 = 1;
-		const rfidAntenna1 = new RfidAntenna(duplexStream, address1);
+		const rfidAntenna1 = new RfidAntenna(serialPort, address1);
 
 		const address2 = 2;
-		const rfidAntenna2 = new RfidAntenna(duplexStream, address2);
+		const rfidAntenna2 = new RfidAntenna(serialPort, address2);
 
 		const antenna1PlacedTagPromise = new Promise((resolve: (tagNumber: number) => void, reject: () => void) => {
 			rfidAntenna1
@@ -175,25 +144,25 @@ describe('RfidAntennaTag', () => {
 				});
 		});
 
-		duplexStream.push(`XR[PB001]`);
-		duplexStream.push(`X001A[0]`);
+		serialPort.emit(SerialPortEvent.MESSAGE, 'XR[PB001]');
+		serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[0]');
 	
 		let placedTagNumber = await antenna1PlacedTagPromise;
 
 		should(placedTagNumber).be.equal(1);
 
-		duplexStream.push(`XR[PB002]`);
-		duplexStream.push(`X002A[0]`);
-	
+		serialPort.emit(SerialPortEvent.MESSAGE, 'XR[PB002]');
+		serialPort.emit(SerialPortEvent.MESSAGE, 'X002A[0]');
+
 		placedTagNumber = await antenna2PlacedTagPromise;
 
 		should(placedTagNumber).be.equal(2);
 	});
 
 	it('should correctly emit Picked event for multiple tags on one antenna', async function() {
-		const duplexStream = new MockDuplex();
+		const serialPort = new MockSerialPort();
 		const address = 1;
-		const rfidAntennaTag = new RfidAntenna(duplexStream, address);
+		const rfidAntennaTag = new RfidAntenna(serialPort, address);
 		const tagNumber2 = 2;
 		const tagNumber4 = 4;
 
@@ -220,28 +189,26 @@ describe('RfidAntennaTag', () => {
 					reject();
 				});
 		});
-		
-		duplexStream.push(`XR[PU002]`);
-		duplexStream.push(`X001A[1]`);
+
+		serialPort.emit(SerialPortEvent.MESSAGE, 'XR[PU002]');
+		serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[1]');
 
 		let pickedTagNumber = await pickedTag2Promise;
 
 		should(pickedTagNumber).be.equal(2);
 
-		duplexStream.push(`XR[PU004]`);
-		duplexStream.push(`X001A[1]`);
+		serialPort.emit(SerialPortEvent.MESSAGE, 'XR[PU004]');
+		serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[1]');
 
 		pickedTagNumber = await pickedTag4Promise;
 
 		should(pickedTagNumber).be.equal(4);
-
-		duplexStream.end();
 	});
 
 	it('should correctly emit Placed event for multiple tags on one antenna', async function() {
-		const duplexStream = new MockDuplex();
+		const serialPort = new MockSerialPort();
 		const address = 1;
-		const rfidAntennaTag = new RfidAntenna(duplexStream, address);
+		const rfidAntennaTag = new RfidAntenna(serialPort, address);
 		const tagNumber2 = 2;
 		const tagNumber4 = 4;
 
@@ -270,31 +237,29 @@ describe('RfidAntennaTag', () => {
 				});
 		});
 
-		duplexStream.push(`XR[PB002]`);
-		duplexStream.push(`X001A[0]`);
+		serialPort.emit(SerialPortEvent.MESSAGE, 'XR[PB002]');
+		serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[0]');
 
 		let placedTagNumber = await pickedTag2Promise;
 
 		should(placedTagNumber).be.equal(2);
 
-		duplexStream.push(`XR[PB004]`);
-		duplexStream.push(`X001A[0]`);
+		serialPort.emit(SerialPortEvent.MESSAGE, 'XR[PB004]');
+		serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[0]');
 
 		placedTagNumber = await pickedTag4Promise;
 
 		should(placedTagNumber).be.equal(placedTagNumber);
-
-		duplexStream.end();
 	});
 
 	it('should correctly emit Picked events for multiple tags on multiple antennas', async function() {
-		const duplexStream = new MockDuplex();
+		const serialPort = new MockSerialPort();
 		const address1 = 1;
-		const rfidAntenna1 = new RfidAntenna(duplexStream, address1);
+		const rfidAntenna1 = new RfidAntenna(serialPort, address1);
 		const tagNumber1 = 1;
 
 		const address2 = 2;
-		const rfidAntenna2 = new RfidAntenna(duplexStream, address2);
+		const rfidAntenna2 = new RfidAntenna(serialPort, address2);
 		const tagNumber2 = 2;
 
 		const pickedTag1Antenna1Promise = new Promise((resolve: (tagNumber: number) => void) => {
@@ -333,74 +298,81 @@ describe('RfidAntennaTag', () => {
 				});
 		});
 
-		duplexStream.push(`XR[PU001]`);
-		duplexStream.push(`X001A[1]`);
+		serialPort.emit(SerialPortEvent.MESSAGE, 'XR[PU001]');
+		serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[1]');
 
 		let pickedTagNumber = await pickedTag1Antenna1Promise;
 
 		should(pickedTagNumber).be.equal(1);
 
-		duplexStream.push(`XR[PB001]`);
-		duplexStream.push(`X002A[0]`);
+		serialPort.emit(SerialPortEvent.MESSAGE, 'XR[PB001]');
+		serialPort.emit(SerialPortEvent.MESSAGE, 'X002A[0]');
 
 		let placedTagNumber = await placedTag1Antenna2Promise;
 
 		should(placedTagNumber).be.equal(1);
 
-		duplexStream.push(`XR[PU002]`);
-		duplexStream.push(`X002A[1]`);
+		serialPort.emit(SerialPortEvent.MESSAGE, 'XR[PU002]');
+		serialPort.emit(SerialPortEvent.MESSAGE, 'X002A[1]');
 
 		pickedTagNumber = await pickedTag2Antenna2Promise;
 
 		should(pickedTagNumber).be.equal(2);
 
-		duplexStream.push(`XR[PB002]`);
-		duplexStream.push(`X002A[0]`);
+		serialPort.emit(SerialPortEvent.MESSAGE, 'XR[PB002]');
+		serialPort.emit(SerialPortEvent.MESSAGE, 'X002A[0]');
 
 		placedTagNumber = await placedTag2Antenna2Promise;
 
 		should(placedTagNumber).be.equal(2);
-
-		duplexStream.end();
 	});
 
 	it('should get tag numbers on antenna when some are placed', async function() {
-		const duplexStream = new MockDuplex();
-
+		const serialPort = new MockSerialPort();
 		const address1 = 7;
-		const rfidAntenna1 = new RfidAntenna(duplexStream, address1);
+		const rfidAntenna1 = new RfidAntenna(serialPort, address1);
+		const tagNumbersPromise = rfidAntenna1.getPlacedTags();
 
-		const tagNumbers = await rfidAntenna1.getPlacedTags();
+		await wait(10);
+		const sentMessages = serialPort.getSentMessages();
+		should(sentMessages).deepEqual([ 'X007B[]' ]);
 
+		serialPort.emit(SerialPortEvent.MESSAGE, 'X007B[ d004 d002 d000 d000]');
+
+		const tagNumbers = await tagNumbersPromise;
 		should(tagNumbers).be.deepEqual([4, 2]);
-
-		duplexStream.end();
 	});
 
 	it('should get tag numbers on antenna when all are placed', async function() {
-		const duplexStream = new MockDuplex();
-
+		const serialPort = new MockSerialPort();
 		const address1 = 1;
-		const rfidAntenna1 = new RfidAntenna(duplexStream, address1);
+		const rfidAntenna1 = new RfidAntenna(serialPort, address1);
+		const tagNumbersPromise = rfidAntenna1.getPlacedTags();
 
-		const tagNumbers = await rfidAntenna1.getPlacedTags();
+		await wait(10);
+		const sentMessages = serialPort.getSentMessages();
+		should(sentMessages).deepEqual([ 'X001B[]' ]);
 
+		serialPort.emit(SerialPortEvent.MESSAGE, 'X001B[d001 d002 d003 d004]');
+
+		const tagNumbers = await tagNumbersPromise;
 		should(tagNumbers).be.deepEqual([1, 2, 3, 4]);
-
-		duplexStream.end();
 	});
 
 	it('should get tag numbers on antenna when none is placed', async function() {
-		const duplexStream = new MockDuplex();
-
+		const serialPort = new MockSerialPort();
 		const address1 = 2;
-		const rfidAntenna1 = new RfidAntenna(duplexStream, address1);
+		const rfidAntenna1 = new RfidAntenna(serialPort, address1);
+		const tagNumbersPromise = rfidAntenna1.getPlacedTags();
 
-		const tagNumbers = await rfidAntenna1.getPlacedTags();
+		await wait(10);
+		const sentMessages = serialPort.getSentMessages();
+		should(sentMessages).deepEqual([ 'X002B[]' ]);
 
+		serialPort.emit(SerialPortEvent.MESSAGE, 'X002B[d000 d000 d000 d000]');
+
+		const tagNumbers = await tagNumbersPromise;
 		should(tagNumbers).be.deepEqual([]);
-
-		duplexStream.end();
 	});
 
 });

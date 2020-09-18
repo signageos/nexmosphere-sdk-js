@@ -1,25 +1,10 @@
 
 import * as should from 'should';
 import Button, { ButtonActions, isButtonPressed } from '../../../src/Button';
-import { Duplex, DuplexOptions } from 'stream';
-import { waitUntil } from '../../helper';
+import { SerialPortEvent } from '../../../src/ISerialPort';
+import { waitUntil, wait } from '../../helper';
+import MockSerialPort from '../MockSerialPort';
 
-class MockDuplex extends Duplex {
-
-	public constructor(options?: DuplexOptions) {
-		super(options);
-	}
-
-	public _read(_size: number) { }
-	public _write(chunk: Buffer, _encoding: any, next: () => void) {
-		const chunkStr = chunk.toString();
-		if (chunkStr === 'X001A[]') {
-			this.push(chunk);
-		}
-		next();
-	}
-
-}
 describe('Button', () => {
 
 	describe('isButtonPressed', () => {
@@ -180,12 +165,12 @@ describe('Button', () => {
 	describe('Button.events', () => {
 
 		it('should correctly emit on pressed/released events', async function() {
-			const duplexStream = new MockDuplex();
+			const serialPort = new MockSerialPort();
 
 			const address = 1;
 			const index = 0;
 	
-			const button = new Button(duplexStream, address, index);
+			const button = new Button(serialPort, address, index);
 	
 			let i = 0;
 	
@@ -197,52 +182,50 @@ describe('Button', () => {
 					i -= 1;
 				});
 	
-			duplexStream.push('X001A[3]');
+			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[3]');
 	
 			await waitUntil(async () => {
 				return i === 1;
 			});
 	
 			should(i).be.equal(1);
-	
-			duplexStream.push('X001A[0]');
-	
-			await waitUntil(async () => {
-				return i === 0;
-			});
-	
-			should(i).be.equal(0);
-	
-			duplexStream.push('X001A[3]');
-	
-			await waitUntil(async () => {
-				return i === 1;
-			});
-	
-			should(i).be.equal(1);
-	
-			duplexStream.push('X001A[0]');
-	
+
+			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[0]');
+
 			await waitUntil(async () => {
 				return i === 0;
 			});
 	
 			should(i).be.equal(0);
 
-			duplexStream.end();
+			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[3]');
+
+			await waitUntil(async () => {
+				return i === 1;
+			});
+	
+			should(i).be.equal(1);
+
+			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[0]');
+	
+			await waitUntil(async () => {
+				return i === 0;
+			});
+	
+			should(i).be.equal(0);
 		});
 
 		it('should correctly emit pressed/relesed events when multiple buttons are pressed', async function() {
-			const duplexStream = new MockDuplex();
+			const serialPort = new MockSerialPort();
 
 			const address1 = 1;
 			const index1 = 0;
 			const address2 = 1;
 			const index2 = 1;
 
-			const button1 = new Button(duplexStream, address1, index1);
+			const button1 = new Button(serialPort, address1, index1);
 			let i1 = 0;
-			const button2 = new Button(duplexStream, address2, index2);
+			const button2 = new Button(serialPort, address2, index2);
 			let i2 = 0;
 
 			button1
@@ -261,7 +244,7 @@ describe('Button', () => {
 					i2 = Math.max(i2 - 1, 0);
 				});
 
-			duplexStream.push('X001A[3]');
+			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[3]');
 
 			await waitUntil(async () => {
 				return i1 === 1 && i2 === 0;
@@ -270,7 +253,7 @@ describe('Button', () => {
 			should(i1).be.equal(1);
 			should(i2).be.equal(0);
 
-			duplexStream.push('X001A[7]');
+			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[7]');
 
 			await waitUntil(async () => {
 				return i1 === 1 && i2 === 1;
@@ -279,7 +262,7 @@ describe('Button', () => {
 			should(i1).be.equal(1);
 			should(i2).be.equal(1);
 
-			duplexStream.push('X001A[0]');
+			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[0]');
 
 			await waitUntil(async () => {
 				return i1 === 0 && i2 === 0;
@@ -288,7 +271,7 @@ describe('Button', () => {
 			should(i1).be.equal(0);
 			should(i2).be.equal(0);
 
-			duplexStream.push('X001A[31]'); // 11111
+			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[31]'); // 11111
 
 			await waitUntil(async () => {
 				return i1 === 1 && i2 === 1;
@@ -298,7 +281,7 @@ describe('Button', () => {
 			should(i2).be.equal(1);
 
 			// 3rd & 4th button pressed 1st & 2d released
-			duplexStream.push('X001A[25]');
+			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[25]');
 
 			await waitUntil(async () => {
 				return i1 === 0 && i2 === 0;
@@ -306,12 +289,10 @@ describe('Button', () => {
 
 			should(i1).be.equal(0);
 			should(i2).be.equal(0);
-
-			duplexStream.end();
 		});
 
 		it('should correctly emit events when all buttons are pressed/released', async function() {
-			const duplexStream = new MockDuplex();
+			const serialPort = new MockSerialPort();
 
 			const address = 1;
 			const index1 = 0;
@@ -319,19 +300,19 @@ describe('Button', () => {
 			const index3 = 2;
 			const index4 = 3;
 
-			const button1 = new Button(duplexStream, address, index1);
+			const button1 = new Button(serialPort, address, index1);
 			let i1 = 0;
 			const button1PressedCallBack = () => i1 += 1;
 			const button1ReleasedCallBack = () => i1 -= 1;
-			const button2 = new Button(duplexStream, address, index2);
+			const button2 = new Button(serialPort, address, index2);
 			let i2 = 0;
 			const button2PressedCallBack = () => i2 += 1;
 			const button2ReleasedCallBack = () => i2 -= 1;
-			const button3 = new Button(duplexStream, address, index3);
+			const button3 = new Button(serialPort, address, index3);
 			let i3 = 0;
 			const button3PressedCallBack = () => i3 += 1;
 			const button3ReleasedCallBack = () => i3 -= 1;
-			const button4 = new Button(duplexStream, address, index4);
+			const button4 = new Button(serialPort, address, index4);
 			let i4 = 0;
 			const button4PressedCallBack = () => i4 += 1;
 			const button4ReleasedCallBack = () => i4 -= 1;
@@ -341,7 +322,7 @@ describe('Button', () => {
 			button3.on(ButtonActions.Pressed, button3PressedCallBack).on(ButtonActions.Released, button3ReleasedCallBack);
 			button4.on(ButtonActions.Pressed, button4PressedCallBack).on(ButtonActions.Released, button4ReleasedCallBack);
 
-			duplexStream.push('X001A[31]');
+			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[31]');
 
 			await waitUntil(async () => i1 === 1 && i2 === 1 && i3 === 1 && i4 === 1);
 
@@ -351,7 +332,7 @@ describe('Button', () => {
 			should(i4).be.equal(1);
 
 			// 2nd & 3rd buttons are pressed other released
-			duplexStream.push('X001A[13]');
+			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[13]');
 
 			await waitUntil(async () => i1 === 0 && i2 === 1 && i3 === 1 && i4 === 0);
 
@@ -360,7 +341,7 @@ describe('Button', () => {
 			should(i3).be.equal(1);
 			should(i4).be.equal(0);
 
-			duplexStream.push('X001A[0]');
+			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[0]');
 
 			/// only 2nd & 3rd were released other were already released so we trigger released precisely
 			await waitUntil(async () => i1 === 0 && i2 === 0 && i3 === 0 && i4 === 0);
@@ -370,7 +351,7 @@ describe('Button', () => {
 			should(i3).be.equal(0);
 			should(i4).be.equal(0);
 
-			duplexStream.push('X001A[3]');
+			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[3]');
 
 			await waitUntil(async () => i1 === 1 && i2 === 0 && i3 === 0 && i4 === 0);
 
@@ -378,47 +359,37 @@ describe('Button', () => {
 			should(i2).be.equal(0);
 			should(i3).be.equal(0);
 			should(i4).be.equal(0);
-
-			duplexStream.end();
 		});
 	});
 
 	describe('Button.isPressed', () => {
 
 		it('should return true when button is currently pressed', async function () {
-			const duplexStream = new MockDuplex();
-			const button = new Button(duplexStream, 1, 0);
-			const dataWrittenPromise = new Promise((resolve: (data: Buffer) => void) => {
-				duplexStream.on('data', resolve);
-			});
+			const serialPort = new MockSerialPort();
+			const button = new Button(serialPort, 1, 0);
 			const isPressedPromise = button.isPressed();
 
-			const writtenData = await dataWrittenPromise;
-			should(writtenData.toString()).equal('X001A[]');
+			await wait(10);
+			const sentMessages = serialPort.getSentMessages();
+			should(sentMessages).deepEqual(['X001A[]']);
 
-			duplexStream.push('X001A[3]');
+			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[3]');
 			const isPressed = await isPressedPromise;
 			should(isPressed).be.true();
-
-			duplexStream.end();
 		});
 
 		it('should return false when button is not currently pressed', async function () {
-			const duplexStream = new MockDuplex();
-			const button = new Button(duplexStream, 1, 0);
-			const dataWrittenPromise = new Promise((resolve: (data: Buffer) => void) => {
-				duplexStream.on('data', resolve);
-			});
+			const serialPort = new MockSerialPort();
+			const button = new Button(serialPort, 1, 0);
 			const isPressedPromise = button.isPressed();
 
-			const writtenData = await dataWrittenPromise;
-			should(writtenData.toString()).equal('X001A[]');
+			await wait(10);
+			const sentMessages = serialPort.getSentMessages();
+			should(sentMessages).deepEqual(['X001A[]']);
 
-			duplexStream.push('X001A[0]');
+			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[0]');
 			const isPressed = await isPressedPromise;
 			should(isPressed).be.false();
-
-			duplexStream.end();
 		});
 	});
 });
