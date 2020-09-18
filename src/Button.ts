@@ -22,7 +22,7 @@ class Button extends EventEmitter {
 	 */
 	private index: number;
 
-	private state: ButtonStates | null = null;
+	private state: ButtonStates;
 	private eventEmitter: EventEmitter;
 
 	public constructor(
@@ -34,6 +34,7 @@ class Button extends EventEmitter {
 		this.index = index;
 		this.eventEmitter = new EventEmitter();
 
+		this.state = ButtonStates.RELEASED;
 		this.initStream();
 	}
 
@@ -42,6 +43,7 @@ class Button extends EventEmitter {
 		const msg = `X${address}A[]`;
 		this.serialPort.sendMessage(msg);
 		const newState = await this.waitForNextStateChange();
+
 		return newState === ButtonActions.Pressed;
 	}
 

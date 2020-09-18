@@ -213,7 +213,7 @@ describe('Button', () => {
 					i1 += 1;
 				})
 				.on(ButtonActions.Released, () => {
-					i1 = Math.max(i1 - 1, 0);
+					i1 -= 1;
 				});
 
 			button2
@@ -221,7 +221,7 @@ describe('Button', () => {
 					i2 += 1;
 				})
 				.on(ButtonActions.Released, () => {
-					i2 = Math.max(i2 - 1, 0);
+					i2 -= 1;
 				});
 
 			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[3]');
