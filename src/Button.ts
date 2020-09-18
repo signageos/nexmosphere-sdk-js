@@ -1,5 +1,11 @@
 import { EventEmitter } from "events";
-import { parseMessage, FormatType, CommandType } from "./MessageParser";
+import {
+	parseMessage,
+	FormatType,
+	CommandType,
+	InvalidArgumentError,
+	UnknownCommandError,
+} from "./MessageParser";
 import ISerialPort, { SerialPortEvent } from './ISerialPort';
 
 export enum ButtonActions {
@@ -63,7 +69,10 @@ class Button extends EventEmitter {
 					}
 				}
 			} catch (error) {
-				// todo: how we react?
+
+				if (! (error instanceof InvalidArgumentError) && ! (error instanceof UnknownCommandError)) {
+					console.error(error.message);
+				}
 			}
 		});
 	}

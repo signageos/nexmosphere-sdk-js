@@ -1,5 +1,11 @@
 import { EventEmitter } from "events";
-import { parseMessage, CommandType, FormatType } from "./MessageParser";
+import {
+	parseMessage,
+	CommandType,
+	FormatType,
+	InvalidArgumentError,
+	UnknownCommandError,
+} from "./MessageParser";
 import ISerialPort, { SerialPortEvent } from './ISerialPort';
 
 export enum RfidAntennaActions {
@@ -16,6 +22,7 @@ const COMMAND_TAG_NUMBERS_REGEX: RegExp = /^([ \t]*d\d{3}){4}$/;
 
 class RfidAntenna extends EventEmitter {
 
+	// @ts-ignore-next-line state is never read is irrelevant there
 	private state: RfidAntennaStates;
 	private lastTagNumber: number;
 	private eventEmitter: EventEmitter;
@@ -78,9 +85,10 @@ class RfidAntenna extends EventEmitter {
 				}
 
 			} catch (error) {
-				// todo: how we react?
-				console.log(error.message);
-				console.log(this.state);
+
+				if (! (error instanceof InvalidArgumentError) && ! (error instanceof UnknownCommandError)) {
+					console.error(error.message);
+				}
 			}
 		});
 	}
