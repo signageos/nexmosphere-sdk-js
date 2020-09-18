@@ -37,6 +37,8 @@ test:general:
     - tags
   script:
     - npm test
+  needs:
+    - prepare
 
 test:lint:
   stage: test
@@ -45,6 +47,8 @@ test:lint:
   script:
     - if [ `find test* -type f -print0 | xargs -0 grep "\.only" | wc -l` -gt 0 ]; then echo "You forgot the .only in tests" && exit 1; fi
     - npm run lint
+  needs:
+    - prepare
 
 test:changelog:
   image: $CI_REGISTRY/signageos/docker:master
@@ -54,6 +58,8 @@ test:changelog:
   allow_failure: true
   script:
     - ci-test-changelog
+  needs:
+    - prepare
 
 test:check:
   stage: test
@@ -62,6 +68,8 @@ test:check:
   allow_failure: true
   script:
     - npm run check
+  needs:
+    - prepare
 
 build:
   stage: build
@@ -108,6 +116,13 @@ release:tag:
   before_script: []
   script:
     - ci-release-tag
+  needs:
+    - prepare
+    - build
+    - test:general
+    - test:changelog
+    - test:check
+    - test:lint
 
 release:notes:
   image: $CI_REGISTRY/signageos/docker:master
@@ -116,3 +131,5 @@ release:notes:
     - tags
   script:
     - ci-release-notes
+  needs:
+    - publish:npm
