@@ -8,3 +8,4 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - initial implementation of nexmosphere-sdk
 - Physical button wrapper
+- Rfid antenna

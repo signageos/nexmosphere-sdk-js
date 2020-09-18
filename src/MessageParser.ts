@@ -28,22 +28,30 @@ export class UnknownCommandError extends Error {
 	}
 }
 
-export interface ICommand {
+export interface IAddressableCommand {
 	type: CommandType;
 	address: number;
 	command: string;
 	format: FormatType;
 }
 
-const SHORT_XTALK_COMMAND_REGEX = new RegExp(/^X\d{3}A\[\d{0,3}\]$/, 'i');
+export interface IXRAntennaCommand {
+	type: 'antenna';
+	command: 'PU' | 'PB';
+	tagIndex: number;
+}
 
-export function parseMessage(message: string): ICommand {
+const SHORT_XTALK_COMMAND_REGEX = new RegExp(/^X\d{3}A\[\d{1,3}\]$/, 'i');
+const RFID_ANTENNA_XTALK_REGEX = new RegExp(/^XR\[P(U|B)\d{3}\]$/, 'i');
+const LONG_XTALK_COMMAND_REGEX = new RegExp(/^X\d{3}B\[.{1,30}\]$/, 'i');
+
+export function parseMessage(message: string): IAddressableCommand | IXRAntennaCommand {
 
 	if (message.length === 0) {
 		throw new InvalidArgumentError('Message is empty.');
 	}
-	let format: FormatType;
-	let type: CommandType;
+	let format;
+	let type;
 	let address: string;
 	let command: string;
 
@@ -57,23 +65,54 @@ export function parseMessage(message: string): ICommand {
 		command = message.slice(message.indexOf('[') + 1, message.indexOf(']'));
 
 		const addressConverted = Number(address);
-		return createCommand(command, type, addressConverted, format);
+		return createAddresableCommand(command, type, addressConverted, format);
+	}
+
+	const xTalkRfidAntennaMatch: RegExpMatchArray | null = message.match(RFID_ANTENNA_XTALK_REGEX);
+
+	if (xTalkRfidAntennaMatch) {
+		type = 'antenna';
+		const bracketsContents = message.slice(message.indexOf('[') + 1, message.indexOf(']'));
+		const xrAntennaCmd: 'PU' | 'PB' = bracketsContents.substr(0, 2) as 'PU' | 'PB';
+		const tagIndex = parseInt(bracketsContents.substr(2, 3));
+
+		return createXRAntennaCommand(xrAntennaCmd, tagIndex);
+	}
+
+	const xTalkLongCommandMatch: RegExpMatchArray | null = message.match(LONG_XTALK_COMMAND_REGEX);
+
+	if (xTalkLongCommandMatch) {
+		type = CommandType.XTALK;
+		format = FormatType.LONG;
+		address = message.substr(1, 3); // i.e 008
+		command = message.slice(message.indexOf('[') + 1, message.indexOf(']'));
+
+		return createAddresableCommand(command, type, parseInt(address), format);
 	}
 
 	throw new UnknownCommandError();
 }
 
-export function createCommand(
+export function createAddresableCommand(
 	command: string,
 	type: CommandType,
 	address: number,
 	format: FormatType,
-): ICommand {
+): IAddressableCommand {
 
 	return {
 		command,
 		type,
 		address,
 		format,
+	};
+}
+
+export function createXRAntennaCommand(command: 'PU' | 'PB', tagIndex: number): IXRAntennaCommand {
+
+	return {
+		type: 'antenna',
+		command,
+		tagIndex,
 	};
 }
