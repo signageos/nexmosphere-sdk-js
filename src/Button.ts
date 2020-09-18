@@ -57,12 +57,7 @@ class Button extends EventEmitter {
 				) {
 					if (!isNaN(Number(cmd.command))) {
 						const value = Number(cmd.command);
-
-						if (isButtonPressed(value, this.index) && this.state !== ButtonStates.PRESSED) {
-							this.handlePressed();
-						} else if (this.state !== ButtonStates.RELEASED && !isButtonPressed(value, this.index)) {
-							this.handleReleased();
-						}
+						this.handleNewState(value);
 					}
 				}
 			} catch (error) {
@@ -71,16 +66,28 @@ class Button extends EventEmitter {
 		});
 	}
 
+	private handleNewState(value: number) {
+		if (isButtonPressed(value, this.index)) {
+			this.eventEmitter.emit('state_change', ButtonActions.Pressed);
+			this.handlePressed();
+		} else {
+			this.eventEmitter.emit('state_change', ButtonActions.Released);
+			this.handleReleased();
+		}
+	}
+
 	private handlePressed(): void {
-		this.state = ButtonStates.PRESSED;
-		this.emit(ButtonActions.Pressed);
-		this.eventEmitter.emit('state_change', ButtonActions.Pressed);
+		if (this.state !== ButtonStates.PRESSED) {
+			this.state = ButtonStates.PRESSED;
+			this.emit(ButtonActions.Pressed);
+		}
 	}
 
 	private handleReleased(): void {
-		this.state = ButtonStates.RELEASED;
-		this.emit(ButtonActions.Released);
-		this.eventEmitter.emit('state_change', ButtonActions.Released);
+		if (this.state !== ButtonStates.RELEASED) {
+			this.state = ButtonStates.RELEASED;
+			this.emit(ButtonActions.Released);
+		}
 	}
 
 	private waitForNextStateChange() {
