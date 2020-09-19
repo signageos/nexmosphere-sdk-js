@@ -6,3 +6,4 @@ config/env.*.json
 packages
 ts-node-*
 tmp-*
+.idea
