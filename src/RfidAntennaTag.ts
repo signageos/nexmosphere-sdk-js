@@ -84,9 +84,12 @@ class RfidAntenna extends EventEmitter {
 					this.handleState(cmd.command);
 				}
 
-			} catch (error) {
+			} catch (error: unknown) {
 
-				if (! (error instanceof InvalidArgumentError) && ! (error instanceof UnknownCommandError)) {
+				if (error instanceof Error
+					&& !(error instanceof InvalidArgumentError)
+					&& !(error instanceof UnknownCommandError)
+				) {
 					console.error(error.message); // eslint-disable-line no-console
 				}
 			}
