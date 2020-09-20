@@ -3,13 +3,14 @@ export function timeout(ms?: number): Promise<unknown> {
 	if (ms === void 0) {
 		ms = 0;
 	}
-
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	return new Promise((resolve: any) => setTimeout(resolve, ms));
 }
 
-export async function waitUntil(predicate: () => Promise<any>, interval: number = 100): Promise<void> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function waitUntil(predicate: () => Promise<any>, interval = 100): Promise<void> {
 
-	while (true) {
+	while (true) { // eslint-disable-line no-constant-condition
 
 		if (await predicate()) {
 			break;
@@ -18,6 +19,6 @@ export async function waitUntil(predicate: () => Promise<any>, interval: number 
 	}
 }
 
-export async function wait(delay: number = 1e3): Promise<void> {
+export async function wait(delay = 1e3): Promise<void> {
 	return new Promise<void>((resolve: () => void) => setTimeout(() => resolve(), delay));
 }
