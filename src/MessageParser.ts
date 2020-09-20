@@ -1,15 +1,15 @@
 
 export enum CommandType {
-	XTALK = "X",
-	GENERIC = "G",
-	SYSTEM = "S",
-	DIAGNOSTIC = "D",
+	XTALK = 'X',
+	GENERIC = 'G',
+	SYSTEM = 'S',
+	DIAGNOSTIC = 'D',
 }
 
 export enum FormatType {
-	SHORT = "A",
-	LONG = "B",
-	SETTING = "S",
+	SHORT = 'A',
+	LONG = 'B',
+	SETTING = 'S',
 }
 
 export class InvalidArgumentError extends Error {

@@ -14,6 +14,7 @@
 		"develop": "webpack --watch --config=webpack.config.js",
 		"generate-declarations": "tsc -p tsconfig.declarations.json",
 		"lint": "eslint . --ext .ts",
+		"lint-fix": "eslint . --ext .ts --fix",
 		"prebuild": "rm -rf dist/*",
 		"prepare": "npm run prebuild && npm run build && npm run generate-declarations",
 		"test": "NODE_ENV=test jest --maxWorkers=4",
