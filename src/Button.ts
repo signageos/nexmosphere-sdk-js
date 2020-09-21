@@ -18,8 +18,6 @@ export enum ButtonStates {
 	RELEASED,
 }
 
-// tslint:disable:no-bitwise bitwise operations are required in this source file
-
 class Button extends EventEmitter {
 
 	/**
