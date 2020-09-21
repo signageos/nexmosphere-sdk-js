@@ -18,8 +18,6 @@ export enum ButtonStates {
 	RELEASED,
 }
 
-// tslint:disable:no-bitwise bitwise operations are required in this source file
-
 class Button extends EventEmitter {
 
 	/**
@@ -68,9 +66,12 @@ class Button extends EventEmitter {
 						this.handleNewState(value);
 					}
 				}
-			} catch (error) {
+			} catch (error: unknown) {
 
-				if (! (error instanceof InvalidArgumentError) && ! (error instanceof UnknownCommandError)) {
+				if (error instanceof Error
+					&& !(error instanceof InvalidArgumentError)
+					&& !(error instanceof UnknownCommandError)
+				) {
 					console.error(error.message); // eslint-disable-line no-console
 				}
 			}
