@@ -132,4 +132,5 @@ release:notes:
   script:
     - ci-release-notes
   needs:
+    - prepare
     - publish:npm
