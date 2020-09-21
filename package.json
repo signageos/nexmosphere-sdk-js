@@ -1,6 +1,6 @@
 {
 	"name": "@signageos/nexmosphere-sdk-js",
-	"version": "4.3.0",
+	"version": "0.0.0",
 	"main": "dist/bundle.js",
 	"types": "es6/bundle.d.ts",
 	"files": [
