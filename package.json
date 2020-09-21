@@ -1,5 +1,5 @@
 {
-  "name": "@signageos/nexmosphere-sdk-js",
+  "name": "@signageos/nexmosphere-sdk",
   "version": "0.1.0",
   "main": "dist/bundle.js",
   "types": "es6/bundle.d.ts",
