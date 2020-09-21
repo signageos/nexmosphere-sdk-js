@@ -184,13 +184,13 @@ describe('Button', () => {
 
 			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[3]');
 
-			let buttonPressed = await buttonPressedPromise;
+			const buttonPressed = await buttonPressedPromise;
 
 			should(buttonPressed).be.true();
 
 			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[0]');
 
-			let buttonReleased = await buttonReleasedPromise;
+			const buttonReleased = await buttonReleasedPromise;
 
 			should(buttonReleased).be.true();
 		});
@@ -323,7 +323,7 @@ describe('Button', () => {
 
 			serialPort.emit(SerialPortEvent.MESSAGE, 'X001A[0]');
 
-			/// only 2nd & 3rd were released other were already released so we trigger released precisely
+			// / only 2nd & 3rd were released other were already released so we trigger released precisely
 			await waitUntil(async () => i1 === 0 && i2 === 0 && i3 === 0 && i4 === 0);
 
 			should(i1).be.equal(0);
@@ -344,7 +344,7 @@ describe('Button', () => {
 
 	describe('Button.isPressed', () => {
 
-		it('should return true when button is currently pressed', async function () {
+		it('should return true when button is currently pressed', async function() {
 			const serialPort = new MockSerialPort();
 			const button = new Button(serialPort, 1, 0);
 			const isPressedPromise = button.isPressed();
@@ -358,7 +358,7 @@ describe('Button', () => {
 			should(isPressed).be.true();
 		});
 
-		it('should return false when button is not currently pressed', async function () {
+		it('should return false when button is not currently pressed', async function() {
 			const serialPort = new MockSerialPort();
 			const button = new Button(serialPort, 1, 0);
 			const isPressedPromise = button.isPressed();

@@ -101,7 +101,7 @@ describe('MessageParser', () => {
 	});
 
 	it('should throw error the empty command is sent', () => {
-		let sampleMessage = '';
+		const sampleMessage = '';
 		try {
 			parseMessage(sampleMessage);
 		} catch (error) {

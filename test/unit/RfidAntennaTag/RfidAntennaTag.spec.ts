@@ -334,7 +334,7 @@ describe('RfidAntennaTag', () => {
 
 		await wait(10);
 		const sentMessages = serialPort.getSentMessages();
-		should(sentMessages).deepEqual([ 'X007B[]' ]);
+		should(sentMessages).deepEqual(['X007B[]']);
 
 		serialPort.emit(SerialPortEvent.MESSAGE, 'X007B[ d004 d002 d000 d000]');
 
@@ -350,7 +350,7 @@ describe('RfidAntennaTag', () => {
 
 		await wait(10);
 		const sentMessages = serialPort.getSentMessages();
-		should(sentMessages).deepEqual([ 'X001B[]' ]);
+		should(sentMessages).deepEqual(['X001B[]']);
 
 		serialPort.emit(SerialPortEvent.MESSAGE, 'X001B[d001 d002 d003 d004]');
 
@@ -366,7 +366,7 @@ describe('RfidAntennaTag', () => {
 
 		await wait(10);
 		const sentMessages = serialPort.getSentMessages();
-		should(sentMessages).deepEqual([ 'X002B[]' ]);
+		should(sentMessages).deepEqual(['X002B[]']);
 
 		serialPort.emit(SerialPortEvent.MESSAGE, 'X002B[d000 d000 d000 d000]');
 

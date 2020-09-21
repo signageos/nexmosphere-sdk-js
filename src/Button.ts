@@ -1,11 +1,11 @@
-import { EventEmitter } from "events";
+import { EventEmitter } from 'events';
 import {
 	parseMessage,
 	FormatType,
 	CommandType,
 	InvalidArgumentError,
 	UnknownCommandError,
-} from "./MessageParser";
+} from './MessageParser';
 import ISerialPort, { SerialPortEvent } from './ISerialPort';
 
 export enum ButtonActions {
@@ -17,8 +17,6 @@ export enum ButtonStates {
 	PRESSED,
 	RELEASED,
 }
-
-// tslint:disable:no-bitwise bitwise operations are required in this source file
 
 class Button extends EventEmitter {
 
@@ -68,10 +66,13 @@ class Button extends EventEmitter {
 						this.handleNewState(value);
 					}
 				}
-			} catch (error) {
+			} catch (error: unknown) {
 
-				if (! (error instanceof InvalidArgumentError) && ! (error instanceof UnknownCommandError)) {
-					console.error(error.message);
+				if (error instanceof Error
+					&& !(error instanceof InvalidArgumentError)
+					&& !(error instanceof UnknownCommandError)
+				) {
+					console.error(error.message); // eslint-disable-line no-console
 				}
 			}
 		});

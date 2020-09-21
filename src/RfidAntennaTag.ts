@@ -1,11 +1,11 @@
-import { EventEmitter } from "events";
+import { EventEmitter } from 'events';
 import {
 	parseMessage,
 	CommandType,
 	FormatType,
 	InvalidArgumentError,
 	UnknownCommandError,
-} from "./MessageParser";
+} from './MessageParser';
 import ISerialPort, { SerialPortEvent } from './ISerialPort';
 
 export enum RfidAntennaActions {
@@ -18,11 +18,11 @@ export enum RfidAntennaStates {
 	PLACED,
 }
 
-const COMMAND_TAG_NUMBERS_REGEX: RegExp = /^([ \t]*d\d{3}){4}$/;
+const COMMAND_TAG_NUMBERS_REGEX = /^([ \t]*d\d{3}){4}$/;
 
 class RfidAntenna extends EventEmitter {
-
-	// @ts-ignore-next-line state is never read is irrelevant there
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-ignore-next-line state is never read error is irrelevant there
 	private state: RfidAntennaStates;
 	private lastTagNumber: number;
 	private eventEmitter: EventEmitter;
@@ -84,10 +84,13 @@ class RfidAntenna extends EventEmitter {
 					this.handleState(cmd.command);
 				}
 
-			} catch (error) {
+			} catch (error: unknown) {
 
-				if (! (error instanceof InvalidArgumentError) && ! (error instanceof UnknownCommandError)) {
-					console.error(error.message);
+				if (error instanceof Error
+					&& !(error instanceof InvalidArgumentError)
+					&& !(error instanceof UnknownCommandError)
+				) {
+					console.error(error.message); // eslint-disable-line no-console
 				}
 			}
 		});
