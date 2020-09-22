@@ -1,8 +1,8 @@
 {
   "name": "@signageos/nexmosphere-sdk",
   "version": "0.1.0",
-  "main": "dist/bundle.js",
-  "types": "es6/bundle.d.ts",
+  "main": "dist/index.js",
+  "types": "es6/index.d.ts",
   "files": [
     "dist",
     "es6",
@@ -15,7 +15,7 @@
     "generate-declarations": "tsc -p tsconfig.declarations.json",
     "lint": "eslint . --ext .ts",
     "lint-fix": "eslint . --ext .ts --fix",
-    "prebuild": "rm -rf dist/*",
+    "prebuild": "rm -rf dist es6",
     "prepare": "npm run prebuild && npm run build && npm run generate-declarations",
     "test": "NODE_ENV=test jest --maxWorkers=4",
     "escheck": "es-check --module es5 dist/*.js",
@@ -28,7 +28,6 @@
   },
   "devDependencies": {
     "@babel/core": "7.6.0",
-    "@babel/polyfill": "7.6.0",
     "@babel/preset-env": "7.6.0",
     "@types/jest": "26.0.14",
     "@types/lodash": "4.14.137",

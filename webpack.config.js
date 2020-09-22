@@ -6,10 +6,10 @@ const parameters = require('./config/parameters');
 const packageConfigPath = parameters.paths.rootPath + '/package.json';
 
 module.exports = {
-	entry: ['@babel/polyfill', './src/index'],
+	entry: './src/index',
 	output: {
 		path: parameters.paths.distPath,
-		filename: 'bundle.js',
+		filename: 'index.js',
 		publicPath: "/",
 		libraryTarget: 'umd',
 	},
