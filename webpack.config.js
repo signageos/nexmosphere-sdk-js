@@ -9,7 +9,7 @@ module.exports = {
 	entry: './src/index',
 	output: {
 		path: parameters.paths.distPath,
-		filename: 'bundle.js',
+		filename: 'index.js',
 		publicPath: "/",
 		libraryTarget: 'umd',
 	},
