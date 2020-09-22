@@ -28,7 +28,6 @@
   },
   "devDependencies": {
     "@babel/core": "7.6.0",
-    "@babel/polyfill": "7.6.0",
     "@babel/preset-env": "7.6.0",
     "@types/jest": "26.0.14",
     "@types/lodash": "4.14.137",
