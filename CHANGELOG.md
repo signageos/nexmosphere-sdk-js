@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Don't include babel polyfill in the build
 - Rename main output file to index.js
+- Add useful README with examples
 
 ## [0.1.0] - 2020-09-21
 ### Added
