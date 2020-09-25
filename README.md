@@ -33,7 +33,7 @@ The controller numbers the buttons, starting from 1, so first button is no. 1, s
 
 **Here we instead expect an index, starting from 0**, so first button is 0, second button is 1, etc.
 
-```
+```javascript
 const serialPort = createSerialPort();
 const address = 3; // this is equivalent to address 003
 const index = 0; // button no. 1
@@ -52,7 +52,7 @@ button.on('released', () => console.log('button was released'));
 
 ### RFID Antenna
 
-```
+```javascript
 const serialPort = createSerialPort();
 const address = 50; // this is equivalent to address 050
 const rfidAntenna = new RfidAntenna(serialPort, address);
