@@ -2,7 +2,7 @@
 
 This library implements Nexmosphere serial communication protocol and exposes it as a collection of easy to use classes.
 
-# Requirements
+## Requirements
 
 Nexmosphere products communicate via UART and send/receive ASCII messages.
 
@@ -12,7 +12,7 @@ that implements the low level communication with the Nexmosphere hardware.
 A good option to implement the low level communication is to use [serialport](https://www.npmjs.com/package/serialport) module,
 but you can implement however you like.
 
-# Addressing
+## Addressing
 
 Nexmosphere X-Talk interface allows you to communicate with many sensors or actuators via a single interface.
 It defines an addresing scheme that allows to reference a specific sensor/actuator.
@@ -21,12 +21,12 @@ The address is always a 3-digit number, for example 003 or 102.
 
 **This library assumes that addresses are numbers, not strings, so 003 becomes 3, 040 becomes 40, etc.**
 
-# Example usage
+## Example usage
 
 All the examples below assume you wrote your own implementation of ISerialPort interface.
 In the examples it's returned by a function `createSerialPort()`.
 
-## Button
+### Button
 
 Nexmosphere buttons controller can handle up to 4 buttons, and they're all referenced with the same address.
 The controller numbers the buttons, starting from 1, so first button is no. 1, second button is no. 2, etc.
@@ -50,7 +50,7 @@ button.on('pressed', () => console.log('button was pressed'));
 button.on('released', () => console.log('button was released'));
 ```
 
-## RFID Antenna
+### RFID Antenna
 
 ```
 const serialPort = createSerialPort();
