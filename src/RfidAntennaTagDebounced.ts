@@ -17,6 +17,8 @@ class RfidAntennaTagDebounced extends EventEmitter {
 		4: undefined,
 	};
 
+	private handleStateChange: any;
+
 	constructor(
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore value is never read is relevant
@@ -28,42 +30,42 @@ class RfidAntennaTagDebounced extends EventEmitter {
 		super();
 		this.handleStateChange = this.handleStateChange.bind(this);
 		this.rfidAntenna = new RfidAntenna(serialPort, address);
-		const debouncedStateChangeHandler: _.DebouncedFunc<(tagNumber: number, newState: RfidAntennaStates) => void>
-			= _.debounce(this.handleStateChange, 50, { trailing: true });
 
 		this.rfidAntenna
-			.on(RfidAntennaActions.Placed, debouncedStateChangeHandler)
-			.on(RfidAntennaActions.Picked, debouncedStateChangeHandler);
+			.on(RfidAntennaActions.Placed, (tagNumber: number) => this.handlePlaced(tagNumber))
+			.on(RfidAntennaActions.Picked, (tagNumber: number) => this.handlePicked(tagNumber));
+
+		this.handleStateChange = _.debounce(
+			(tagNumber: number, newState: RfidAntennaStates) => {
+				if (newState !== this.state[tagNumber] && newState === RfidAntennaStates.PICKED) {
+					this.state[tagNumber] = RfidAntennaStates.PICKED;
+					this.emit(RfidAntennaActions.Picked, tagNumber);
+				}
+				if (newState !== this.state[tagNumber] && newState === RfidAntennaStates.PLACED) {
+					this.state[tagNumber] = RfidAntennaStates.PLACED;
+					this.emit(RfidAntennaActions.Placed, tagNumber);
+				}
+			},
+			50,
+			{ trailing: true },
+		);
 	}
 
 	public getAntennaState(): AntennaTagStatesMap {
 		return this.state;
 	}
 
-	private handleStateChange(tagNumber: number, newState: RfidAntennaStates): void {
+	private handlePicked(tagNumber: number): void {
+		this.handleStateChange(tagNumber, RfidAntennaStates.PICKED);
+	}
 
-		if (newState !== this.state[tagNumber] && newState === RfidAntennaStates.PICKED) {
-			this.handlePicked(tagNumber);
-		}
-		if (newState !== this.state[tagNumber] && newState === RfidAntennaStates.PLACED) {
-			this.handlePlaced(tagNumber);
-		}
+	private handlePlaced(tagNumber: number): void {
+		this.handleStateChange(tagNumber, RfidAntennaStates.PLACED);
 	}
 
 	public getPlacedTags(): Promise<Array<number>> {
 		return this.rfidAntenna.getPlacedTags();
 	}
-
-	private handlePicked(tagNumber: number): void {
-		this.state[tagNumber] = RfidAntennaStates.PICKED;
-		this.emit(RfidAntennaActions.Picked, tagNumber);
-	}
-
-	private handlePlaced(tagNumber: number): void {
-		this.state[tagNumber] = RfidAntennaStates.PLACED;
-		this.emit(RfidAntennaActions.Placed, tagNumber);
-	}
-
 }
 
 export default RfidAntennaTagDebounced;
