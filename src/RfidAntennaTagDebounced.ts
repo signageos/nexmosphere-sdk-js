@@ -10,6 +10,7 @@ type AntennaTagStatesMap = {
 class RfidAntennaTagDebounced extends EventEmitter {
 
 	private readonly rfidAntenna: RfidAntenna;
+
 	private state: AntennaTagStatesMap = {
 		1: undefined,
 		2: undefined,
@@ -17,7 +18,7 @@ class RfidAntennaTagDebounced extends EventEmitter {
 		4: undefined,
 	};
 
-	private handleStateChange: any;
+	private readonly handleStateChange: _.DebouncedFunc<(tagNumber: number, newState: RfidAntennaStates) => void>;
 
 	constructor(
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -26,9 +27,9 @@ class RfidAntennaTagDebounced extends EventEmitter {
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore value is never read is relevant
 		private address: number,
+		debounceIntervalMs = 50,
 	) {
 		super();
-		this.handleStateChange = this.handleStateChange.bind(this);
 		this.rfidAntenna = new RfidAntenna(serialPort, address);
 
 		this.rfidAntenna
@@ -46,9 +47,10 @@ class RfidAntennaTagDebounced extends EventEmitter {
 					this.emit(RfidAntennaActions.Placed, tagNumber);
 				}
 			},
-			50,
+			debounceIntervalMs,
 			{ trailing: true },
 		);
+
 	}
 
 	public getAntennaState(): AntennaTagStatesMap {
