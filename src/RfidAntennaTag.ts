@@ -14,15 +14,14 @@ export enum RfidAntennaActions {
 }
 
 export enum RfidAntennaStates {
-	PICKED,
 	PLACED,
+	PICKED,
 }
 
 const COMMAND_TAG_NUMBERS_REGEX = /^([ \t]*d\d{3}){4}$/;
 
 class RfidAntenna extends EventEmitter {
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// @ts-ignore-next-line state is never read error is irrelevant there
+
 	private state: RfidAntennaStates;
 	private lastTagNumber: number;
 	private eventEmitter: EventEmitter;
@@ -48,6 +47,10 @@ class RfidAntenna extends EventEmitter {
 			.map((x: string) => x.substr(1))
 			.map((x: string) => parseInt(x))
 			.filter((x: number) => x !== 0);
+	}
+
+	public getAntennaState(): RfidAntennaStates {
+		return this.state;
 	}
 
 	private initStream(): void {
@@ -97,11 +100,11 @@ class RfidAntenna extends EventEmitter {
 	}
 
 	private handlePicked(tagNumber: number): void {
-		this.emit(RfidAntennaActions.Picked, tagNumber);
+		this.emit(RfidAntennaActions.Picked, tagNumber, this.state);
 	}
 
 	private handlePlaced(tagNumber: number): void {
-		this.emit(RfidAntennaActions.Placed, tagNumber);
+		this.emit(RfidAntennaActions.Placed, tagNumber, this.state);
 	}
 
 	private handleState(command: string): void {
