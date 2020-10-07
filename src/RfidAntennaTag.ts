@@ -100,11 +100,11 @@ class RfidAntenna extends EventEmitter {
 	}
 
 	private handlePicked(tagNumber: number): void {
-		this.emit(RfidAntennaActions.Picked, tagNumber, this.state);
+		this.emit(RfidAntennaActions.Picked, tagNumber);
 	}
 
 	private handlePlaced(tagNumber: number): void {
-		this.emit(RfidAntennaActions.Placed, tagNumber, this.state);
+		this.emit(RfidAntennaActions.Placed, tagNumber);
 	}
 
 	private handleState(command: string): void {
