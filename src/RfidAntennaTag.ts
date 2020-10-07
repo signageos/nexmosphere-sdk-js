@@ -14,15 +14,16 @@ export enum RfidAntennaActions {
 }
 
 export enum RfidAntennaStates {
-	PICKED,
 	PLACED,
+	PICKED,
 }
 
 const COMMAND_TAG_NUMBERS_REGEX = /^([ \t]*d\d{3}){4}$/;
 
 class RfidAntenna extends EventEmitter {
+
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// @ts-ignore-next-line state is never read error is irrelevant there
+	// @ts-ignore value is never read is irrelevant
 	private state: RfidAntennaStates;
 	private lastTagNumber: number;
 	private eventEmitter: EventEmitter;
